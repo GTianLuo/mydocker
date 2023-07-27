@@ -1,21 +1,33 @@
 package subsystems
 
 import (
+	"fmt"
 	"os"
-	"strconv"
+	"os/exec"
+	"syscall"
 	"testing"
 )
 
-func TestMemorySubsystem(t *testing.T) {
-	res := &ResourceConfig{
-		MemoryLimit: "200M",
-	}
-	mSub := &MemorySubsystem{}
-	cgroupPath := "/container-" + strconv.Itoa(os.Getpid())
-	if err := mSub.Apply(cgroupPath, os.Getpid()); err != nil {
+//func TestCgroupManager(t *testing.T) {
+//	res := &ResourceConfig{
+//		MemoryLimit: "200M",
+//	}
+//	cgroupManager := cgroups.NewCgroupManager("/container-"+strconv.Itoa(os.Getpid()), res)
+//	defer cgroupManager.Destroy()
+//	if err := cgroupManager.Apply(os.Getpid()); err != nil {
+//		panic(err)
+//	}
+//	if err := cgroupManager.Set(); err != nil {
+//		panic(err)
+//	}
+//}
+
+func TestExec(t *testing.T) {
+	command := "ls"
+	path, err := exec.LookPath("ls")
+	if err != nil {
 		panic(err)
 	}
-	if err := mSub.Set(cgroupPath, res); err != nil {
-		panic(err)
-	}
+	err = syscall.Exec(path, []string{command}, os.Environ())
+	fmt.Println(err)
 }

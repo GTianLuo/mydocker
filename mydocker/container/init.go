@@ -1,9 +1,11 @@
 package container
 
 import (
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 )
 
@@ -13,11 +15,8 @@ func NewParentProcess(tty bool, interactive bool, command string) *exec.Cmd {
 	args := []string{"init", command}
 	cmd := exec.Command("/proc/self/exe", args...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
+		// TODO user namespace
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWNET | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWIPC,
-	}
-	cmd.SysProcAttr.Credential = &syscall.Credential{
-		Uid: uint32(1),
-		Gid: uint32(1),
 	}
 	if tty && interactive {
 		cmd.Stdin = os.Stdin
@@ -39,8 +38,14 @@ func RunContainerInitProcess(command string, args []string) error {
 		log.Errorf("Failed to mount /proc filesystem:" + err.Error())
 		return err
 	}
+	// 在环境变量中找到可执行文件的完整路径
+	file := strings.Split(command, " ")[0]
+	path, err := exec.LookPath(file)
+	if err != nil {
+		return fmt.Errorf("not find %s in PATH:%s", file, err.Error())
+	}
 	argv := []string{command}
-	if err := syscall.Exec(command, argv, os.Environ()); err != nil {
+	if err := syscall.Exec(path, argv, os.Environ()); err != nil {
 		log.Errorf(err.Error())
 	}
 	return nil

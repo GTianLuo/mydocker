@@ -4,7 +4,9 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"my_docker/mydocker/cgroups/subsystems"
 	"my_docker/mydocker/container"
+	"strings"
 )
 
 func init() {
@@ -15,6 +17,7 @@ func init() {
 	// 添加 -i 和 -t 参数
 	runCommand.Flags().BoolP("interactive", "i", false, interactiveUsage)
 	runCommand.Flags().BoolP("tty", "t", false, ttyUsage)
+	runCommand.Flags().StringP("memory", "m", "-1m", memoryUsage)
 }
 
 var runCommand = &cobra.Command{
@@ -28,15 +31,13 @@ var runCommand = &cobra.Command{
 			return fmt.Errorf("Missing container command")
 		}
 		// 读取开关参数
-		isTty, err := cmd.Flags().GetBool("tty")
-		if err != nil {
-			log.Error("invalid flag:", err.Error())
-		}
-		isInteractive, err := cmd.Flags().GetBool("interactive")
-		if err != nil {
-			log.Error("invalid flag:", err.Error())
-		}
-		Run(isTty, isInteractive, args[0])
+		isTty, _ := cmd.Flags().GetBool("tty")
+		isInteractive, _ := cmd.Flags().GetBool("interactive")
+
+		// 读取资源限制参数
+		memoryLimit, _ := cmd.Flags().GetString("memory")
+		command := strings.Join(args, " ")
+		Run(isTty, isInteractive, command, &subsystems.ResourceConfig{MemoryLimit: memoryLimit})
 		return nil
 	},
 }
@@ -47,8 +48,7 @@ var initCommand = &cobra.Command{
 	Short: initCommandShort,
 	Long:  initCommandLong,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		command := args[0]
-		log.Infof("command %s", command)
-		return container.RunContainerInitProcess(command, nil)
+		log.Infof("command %s", args[0])
+		return container.RunContainerInitProcess(args[0], nil)
 	},
 }

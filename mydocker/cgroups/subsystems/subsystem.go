@@ -11,11 +11,4 @@ type Subsystem interface {
 	// 返回subsystem的名字
 	Name() string
 	Set(cgroupPath string, res *ResourceConfig) error
-	Apply(path string, pid int) error
-	Remove(path string) error
 }
-
-// SubsystemIns subsystem实例的处理链数组
-var (
-	SubsystemIns = []Subsystem{}
-)
