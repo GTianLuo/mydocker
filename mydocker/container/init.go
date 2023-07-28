@@ -11,9 +11,14 @@ import (
 
 // NewParentProcess 获取创建新进程的命令
 // 该命令在执行时调用当前的可执行程序,这里通过参数设置调用init方法
-func NewParentProcess(tty bool, interactive bool, command string) *exec.Cmd {
+func NewParentProcess(tty bool, interactive bool, command string) (*exec.Cmd, *os.File) {
 	args := []string{"init", command}
 	cmd := exec.Command("/proc/self/exe", args...)
+	// 创建一个pipe用来传递command
+	readPipe, writePipe, err := NewPipe()
+	if err != nil {
+		return nil, nil
+	}
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		// TODO user namespace
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWNET | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWIPC,
@@ -23,7 +28,8 @@ func NewParentProcess(tty bool, interactive bool, command string) *exec.Cmd {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
-	return cmd
+	cmd.ExtraFiles = []*os.File{readPipe}
+	return cmd, writePipe
 }
 
 func RunContainerInitProcess(command string, args []string) error {
@@ -49,4 +55,13 @@ func RunContainerInitProcess(command string, args []string) error {
 		log.Errorf(err.Error())
 	}
 	return nil
+}
+
+// NewPipe 创建管道
+func NewPipe() (*os.File, *os.File, error) {
+	r, w, err := os.Pipe()
+	if err != nil {
+		return nil, nil, err
+	}
+	return r, w, err
 }

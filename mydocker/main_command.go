@@ -17,7 +17,7 @@ func init() {
 	// 添加 -i 和 -t 参数
 	runCommand.Flags().BoolP("interactive", "i", false, interactiveUsage)
 	runCommand.Flags().BoolP("tty", "t", false, ttyUsage)
-	runCommand.Flags().StringP("memory", "m", "-1m", memoryUsage)
+	runCommand.Flags().StringP("memory", "m", "max", memoryUsage)
 }
 
 var runCommand = &cobra.Command{
