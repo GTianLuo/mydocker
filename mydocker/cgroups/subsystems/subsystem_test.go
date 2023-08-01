@@ -31,3 +31,7 @@ func TestExec(t *testing.T) {
 	err = syscall.Exec(path, []string{command}, os.Environ())
 	fmt.Println(err)
 }
+
+func TestPwd(t *testing.T) {
+	fmt.Println(os.Getwd())
+}

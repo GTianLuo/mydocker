@@ -24,7 +24,6 @@ var runCommand = &cobra.Command{
 	Use:   "run",
 	Short: runCommandShort,
 	Long:  runCommandLong,
-
 	RunE: func(cmd *cobra.Command, args []string) error {
 		//判断参数是否包含command并获取
 		if len(args) < 1 {
@@ -49,6 +48,6 @@ var initCommand = &cobra.Command{
 	Long:  initCommandLong,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.Infof("command %s", args[0])
-		return container.RunContainerInitProcess(args[0], nil)
+		return container.RunContainerInitProcess()
 	},
 }

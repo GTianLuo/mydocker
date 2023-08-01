@@ -4,6 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"my_docker/mydocker/cgroups"
 	"my_docker/mydocker/cgroups/subsystems"
+	"my_docker/mydocker/common/pipe"
 	"my_docker/mydocker/container"
 	"os"
 	"strconv"
@@ -11,7 +12,11 @@ import (
 
 // Run 启动容器
 func Run(isTty bool, isInteractive bool, command string, res *subsystems.ResourceConfig) {
-	cmd := container.NewParentProcess(isTty, isInteractive, command)
+	cmd, writePipe := container.NewParentProcess(isTty, isInteractive, command)
+	if cmd == nil {
+		log.Error("failed start container")
+		return
+	}
 	if err := cmd.Start(); err != nil {
 		log.Error(err)
 		return
@@ -32,6 +37,11 @@ func Run(isTty bool, isInteractive bool, command string, res *subsystems.Resourc
 		log.Error(err)
 		return
 	}
+	// 传递参数
+	if err := pipe.WritePipe(writePipe, command); err != nil {
+		log.Error(err)
+	}
+	_ = pipe.ClosePipe(writePipe)
 	cmd.Wait()
 	return
 }
