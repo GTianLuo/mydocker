@@ -43,5 +43,8 @@ func Run(isTty bool, isInteractive bool, command string, res *subsystems.Resourc
 	}
 	_ = pipe.ClosePipe(writePipe)
 	cmd.Wait()
+	rootUrl := "/home/gtl/docker"
+	mntUrl := "/home/gtl/docker/mnt"
+	container.DeleteWorkSpace(rootUrl, mntUrl)
 	return
 }

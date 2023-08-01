@@ -11,30 +11,6 @@ import (
 	"syscall"
 )
 
-// NewParentProcess 获取创建新进程的命令
-// 该命令在执行时调用当前的可执行程序,这里通过参数设置调用init方法
-func NewParentProcess(tty bool, interactive bool, command string) (*exec.Cmd, *os.File) {
-	args := []string{"init", command}
-	cmd := exec.Command("/proc/self/exe", args...)
-	// 创建一个pipe用来传递command
-	readPipe, writePipe, err := pipe.NewPipe()
-	if err != nil {
-		return nil, nil
-	}
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		// TODO user namespace
-		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWNET | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWIPC,
-	}
-	cmd.Dir = "/home/gtl/docker"
-	if tty && interactive {
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-	}
-	cmd.ExtraFiles = []*os.File{readPipe}
-	return cmd, writePipe
-}
-
 func RunContainerInitProcess() error {
 
 	// 从pipe文件中读取command
@@ -59,49 +35,6 @@ func RunContainerInitProcess() error {
 		log.Errorf(err.Error())
 	}
 	return nil
-}
-
-func pivotRoot(newroot string) error {
-
-	// 将namespace下的所有挂载点改为私有挂载点
-	if err := syscall.Mount(
-		"",
-		"/",
-		"",
-		syscall.MS_PRIVATE|syscall.MS_REC,
-		"",
-	); err != nil {
-		return fmt.Errorf("mount / private failed: %v", err)
-	}
-	putold := filepath.Join(newroot, "/.pivot_root")
-	// 创建 rootfs/.pivot_root 存储old_root
-	if err := os.Mkdir(putold, 0777); err != nil {
-		return err
-	}
-	// 将newroot变为挂载点
-	if err := syscall.Mount(
-		newroot,
-		newroot,
-		"",
-		syscall.MS_SLAVE|syscall.MS_BIND|syscall.MS_REC,
-		"",
-	); err != nil {
-		return fmt.Errorf("Mount rootfs to itself error: %v", err)
-	}
-	// pivot_root 到新
-	if err := syscall.PivotRoot(newroot, putold); err != nil {
-		return fmt.Errorf("pivot_root :%v", err)
-	}
-
-	// 修改当前的工作目录
-	if err := os.Chdir("/"); err != nil {
-		return fmt.Errorf("chdir / %v", err)
-	}
-	putold = filepath.Join("/", ".pivot_root")
-	if err := syscall.Unmount(putold, syscall.MNT_DETACH); err != nil {
-		return fmt.Errorf("umount pivot_root dir %v", err)
-	}
-	return os.Remove(putold)
 }
 
 func setUpMount() {
@@ -135,4 +68,47 @@ func setUpMount() {
 	); err != nil {
 		log.Errorf("Failed to mount /dev filesystem:", err.Error())
 	}
+}
+
+func pivotRoot(newroot string) error {
+
+	// 将namespace下的所有挂载点改为私有挂载点
+	if err := syscall.Mount(
+		"",
+		"/",
+		"",
+		syscall.MS_PRIVATE|syscall.MS_REC,
+		"",
+	); err != nil {
+		return fmt.Errorf("mount / private failed: %v", err)
+	}
+	putold := filepath.Join(newroot, "/.pivot_root")
+	// 创建 rootfs/.pivot_root 存储old_root
+	if err := os.Mkdir(putold, 0777); err != nil {
+		return err
+	}
+	// 将newroot变为挂载点
+	if err := syscall.Mount(
+		newroot,
+		newroot,
+		"",
+		syscall.MS_SLAVE|syscall.MS_BIND|syscall.MS_REC,
+		"",
+	); err != nil {
+		return fmt.Errorf("Mount rootfs to itself error: %v", err)
+	}
+	// pivot_root
+	if err := syscall.PivotRoot(newroot, putold); err != nil {
+		return fmt.Errorf("pivot_root :%v", err)
+	}
+
+	// 修改当前的工作目录
+	if err := os.Chdir("/"); err != nil {
+		return fmt.Errorf("chdir / %v", err)
+	}
+	putold = filepath.Join("/", ".pivot_root")
+	if err := syscall.Unmount(putold, syscall.MNT_DETACH); err != nil {
+		return fmt.Errorf("umount pivot_root dir %v", err)
+	}
+	return os.Remove(putold)
 }
