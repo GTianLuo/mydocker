@@ -14,6 +14,7 @@ func init() {
 	app.AddCommand(
 		runCommand,
 		initCommand,
+		listCommand,
 	)
 	// 添加 -i 和 -t 参数
 	runCommand.Flags().BoolP("interactive", "i", false, interactiveUsage)
@@ -22,6 +23,10 @@ func init() {
 	runCommand.Flags().StringP("memory", "m", "max", memoryUsage)
 	//数据卷映射参数 -v
 	runCommand.Flags().StringSliceP("volume", "v", []string{}, volumeUsage)
+	//--name 参数
+	runCommand.Flags().StringP("name", "n", "", nameUsage)
+	// -d 参数
+	runCommand.Flags().BoolP("detach", "d", false, detachUsage)
 }
 
 var runCommand = &cobra.Command{
@@ -47,7 +52,14 @@ var runCommand = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		Run(isTty, isInteractive, command, &subsystems.ResourceConfig{MemoryLimit: memoryLimit}, volumeParam)
+		//获取name参数
+		name, _ := cmd.Flags().GetString("name")
+		// 获取detach
+		detach, err := cmd.Flags().GetBool("detach")
+		if detach && isTty || detach && isInteractive {
+			return fmt.Errorf("ti and paramter can not both provided")
+		}
+		Run(isTty, isInteractive, detach, command, &subsystems.ResourceConfig{MemoryLimit: memoryLimit}, name, volumeParam)
 		return nil
 	},
 }
@@ -60,5 +72,15 @@ var initCommand = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.Infof("command %s", args[0])
 		return container.RunContainerInitProcess()
+	},
+}
+
+// 列出正在运行的容器
+var listCommand = &cobra.Command{
+	Use:   "ps",
+	Short: psCommandShort,
+	Long:  psCommandLong,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return container.ListContainers()
 	},
 }

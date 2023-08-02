@@ -13,6 +13,9 @@ const (
 	initCommandShort = "Init container process"
 	initCommandLong  = `Init container process run user's process in container. 
 						Do not call it outside`
+
+	psCommandShort = "List containers"
+	psCommandLong  = " List containers"
 )
 
 const (
@@ -20,4 +23,6 @@ const (
 	interactiveUsage = "Keep STDIN open even if not attached"
 	memoryUsage      = "Memory limit"
 	volumeUsage      = " Bind mount a volume"
+	nameUsage        = " Assign a name to the container"
+	detachUsage      = " Run container in background and print container ID"
 )

@@ -11,12 +11,14 @@ import (
 )
 
 // Run 启动容器
-func Run(isTty bool, isInteractive bool, command string, res *subsystems.ResourceConfig, volume []string) {
+func Run(isTty bool, isInteractive bool, detach bool, command string, res *subsystems.ResourceConfig, containerName string, volume []string) {
 	cmd, writePipe, err := container.NewParentProcess(isTty, isInteractive, command, volume)
 	defer func() {
-		rootUrl := "/home/gtl/docker"
-		mntUrl := "/home/gtl/docker/mnt"
-		container.DeleteWorkSpace(rootUrl, mntUrl, volume)
+		if !detach {
+			rootUrl := "/home/gtl/docker"
+			mntUrl := "/home/gtl/docker/mnt"
+			container.DeleteWorkSpace(rootUrl, mntUrl, volume)
+		}
 	}()
 	if err != nil {
 		log.Errorf("failed run container:%v", err)
@@ -33,8 +35,10 @@ func Run(isTty bool, isInteractive bool, command string, res *subsystems.Resourc
 	// 使用container-pid作为cgroup名字
 	cgroupManager := cgroups.NewCgroupManager("container-"+strconv.Itoa(os.Getpid()), res)
 	defer func() {
-		if err := cgroupManager.Destroy(); err != nil {
-			log.Error("destroy container failed", err.Error())
+		if !detach {
+			if err := cgroupManager.Destroy(); err != nil {
+				log.Error("destroy container failed", err.Error())
+			}
 		}
 	}()
 
@@ -51,6 +55,16 @@ func Run(isTty bool, isInteractive bool, command string, res *subsystems.Resourc
 		log.Error(err)
 	}
 	_ = pipe.ClosePipe(writePipe)
-	cmd.Wait()
+	info, err := container.RecordContainerInfo(strconv.Itoa(cmd.Process.Pid), command, containerName)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	if isTty && isInteractive {
+		cmd.Wait()
+		container.DeleteContainerInfo(info)
+		return
+	}
+	log.Info(info)
 	return
 }

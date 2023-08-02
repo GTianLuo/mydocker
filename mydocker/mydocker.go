@@ -10,9 +10,7 @@ import (
 
 func initDocker() error {
 
-	log.Info("=============")
 	// 初始化日志配置
-	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 	// 初始化docker日志环境
 	cgroupEnvPath := subsystems.FindCgroupMountpoint("")
