@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"my_docker/mydocker/cgroups/subsystems"
+	"my_docker/mydocker/common"
 	"my_docker/mydocker/container"
 	"strings"
 )
@@ -17,7 +18,10 @@ func init() {
 	// 添加 -i 和 -t 参数
 	runCommand.Flags().BoolP("interactive", "i", false, interactiveUsage)
 	runCommand.Flags().BoolP("tty", "t", false, ttyUsage)
+	//资源限制参数 -m
 	runCommand.Flags().StringP("memory", "m", "max", memoryUsage)
+	//数据卷映射参数 -v
+	runCommand.Flags().StringSliceP("volume", "v", []string{}, volumeUsage)
 }
 
 var runCommand = &cobra.Command{
@@ -36,7 +40,14 @@ var runCommand = &cobra.Command{
 		// 读取资源限制参数
 		memoryLimit, _ := cmd.Flags().GetString("memory")
 		command := strings.Join(args, " ")
-		Run(isTty, isInteractive, command, &subsystems.ResourceConfig{MemoryLimit: memoryLimit})
+
+		// 获取数据卷映射参数
+		volume, _ := cmd.Flags().GetStringSlice("volume")
+		volumeParam, err := common.ParseVolumeParam(volume)
+		if err != nil {
+			return err
+		}
+		Run(isTty, isInteractive, command, &subsystems.ResourceConfig{MemoryLimit: memoryLimit}, volumeParam)
 		return nil
 	},
 }

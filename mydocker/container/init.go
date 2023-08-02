@@ -32,7 +32,7 @@ func RunContainerInitProcess() error {
 	}
 	argv := []string{cmd}
 	if err := syscall.Exec(path, argv, os.Environ()); err != nil {
-		log.Errorf(err.Error())
+		return err
 	}
 	return nil
 }

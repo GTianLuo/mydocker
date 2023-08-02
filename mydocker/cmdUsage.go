@@ -19,4 +19,5 @@ const (
 	ttyUsage         = "Allocate a pseudo-TTY"
 	interactiveUsage = "Keep STDIN open even if not attached"
 	memoryUsage      = "Memory limit"
+	volumeUsage      = " Bind mount a volume"
 )
