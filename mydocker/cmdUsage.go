@@ -19,6 +19,9 @@ const (
 
 	logsCommandShort = "Fetch the logs of a container"
 	logsCommandLong  = "Fetch the logs of a container"
+
+	execCommandShort = "Execute a command in a running container"
+	execCommandLong  = "Execute a command in a running container"
 )
 
 const (

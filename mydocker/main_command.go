@@ -5,17 +5,21 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"my_docker/mydocker/cgroups/subsystems"
+	"my_docker/mydocker/command"
 	"my_docker/mydocker/common"
 	"my_docker/mydocker/container"
+	"os"
 	"strings"
 )
 
 func init() {
+
 	app.AddCommand(
 		runCommand,
 		initCommand,
 		listCommand,
 		logCommand,
+		execCommand,
 	)
 	// 添加 -i 和 -t 参数
 	runCommand.Flags().BoolP("interactive", "i", false, interactiveUsage)
@@ -98,6 +102,28 @@ var logCommand = &cobra.Command{
 		}
 		containerName := args[0]
 		container.LogContainerLog(containerName)
+		return nil
+	},
+}
+
+var execCommand = &cobra.Command{
+	Use:   "exec [flags] CONTAINER COMMAND [ARG...]",
+	Short: execCommandShort,
+	Long:  execCommandLong,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if os.Getenv(command.ENV_EXEC_PID) != "" {
+			// callback
+			log.Infof("pid callback pid: %s", os.Getpid())
+			return nil
+		}
+
+		// 校验参数
+		if len(args) < 2 {
+			return fmt.Errorf("Messing container name or command")
+		}
+		containerName := args[0]
+		cmdS := strings.Join(args[1:], " ")
+		command.ExecContainer(containerName, cmdS)
 		return nil
 	},
 }
