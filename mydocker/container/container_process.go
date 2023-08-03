@@ -13,9 +13,18 @@ import (
 
 // NewParentProcess 获取创建新进程的命令
 // 该命令在执行时调用当前的可执行程序,这里通过参数设置调用init方法
-func NewParentProcess(tty bool, interactive bool, command string, volume []string) (*exec.Cmd, *os.File, error) {
+func NewParentProcess(isTty, isInteractive, detach bool, containerName string, command string, volume []string) (*exec.Cmd, *os.File, error) {
 	args := []string{"init", command}
 	cmd := exec.Command("/proc/self/exe", args...)
+	if isTty && isInteractive {
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	} else if detach {
+		if err := redirectLog(cmd, containerName); err != nil {
+			return nil, nil, fmt.Errorf("log redirect failed:%v", err)
+		}
+	}
 	// 创建一个pipe用来传递command
 	readPipe, writePipe, err := pipe.NewPipe()
 	if err != nil {
@@ -31,11 +40,7 @@ func NewParentProcess(tty bool, interactive bool, command string, volume []strin
 		return nil, nil, err
 	}
 	cmd.Dir = mntUrl
-	if tty && interactive {
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-	}
+
 	cmd.ExtraFiles = []*os.File{readPipe}
 	return cmd, writePipe, nil
 }
@@ -194,4 +199,19 @@ func DeleteWriteLayer(rootUrl string) {
 	if err := os.RemoveAll(workDir); err != nil {
 		log.Errorf("failed delete %v:%v", workDir, err)
 	}
+}
+
+// RedirectLog 重定向日志
+func redirectLog(cmd *exec.Cmd, containerName string) error {
+	dirUrl := fmt.Sprintf(DefaultInfoLocation, containerName)
+	if err := common.MkdirIfNotExist(dirUrl); err != nil {
+		return fmt.Errorf("Create dir error:%v", err)
+	}
+	// 创建日志文件
+	file, err := os.Create(dirUrl + LogFileName)
+	if err != nil {
+		return fmt.Errorf("Create log file error:%v", file)
+	}
+	cmd.Stdout = file
+	return nil
 }

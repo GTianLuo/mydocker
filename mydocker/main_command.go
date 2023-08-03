@@ -15,6 +15,7 @@ func init() {
 		runCommand,
 		initCommand,
 		listCommand,
+		logCommand,
 	)
 	// 添加 -i 和 -t 参数
 	runCommand.Flags().BoolP("interactive", "i", false, interactiveUsage)
@@ -69,9 +70,9 @@ var initCommand = &cobra.Command{
 	Use:   "init",
 	Short: initCommandShort,
 	Long:  initCommandLong,
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		log.Infof("command %s", args[0])
-		return container.RunContainerInitProcess()
+		container.RunContainerInitProcess()
 	},
 }
 
@@ -82,5 +83,21 @@ var listCommand = &cobra.Command{
 	Long:  psCommandLong,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return container.ListContainers()
+	},
+}
+
+// 查看容器日志
+var logCommand = &cobra.Command{
+	Use:   "logs",
+	Short: logsCommandShort,
+	Long:  logsCommandLong,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// 获取参数并校验
+		if len(args) != 1 {
+			return fmt.Errorf("\"docker logs\" requires exactly 1 argument")
+		}
+		containerName := args[0]
+		container.LogContainerLog(containerName)
+		return nil
 	},
 }

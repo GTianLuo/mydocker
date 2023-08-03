@@ -11,13 +11,13 @@ import (
 	"syscall"
 )
 
-func RunContainerInitProcess() error {
+func RunContainerInitProcess() {
 
 	// 从pipe文件中读取command
 	readPipe := os.NewFile(uintptr(3), "pipe")
 	cmdBytes, err := pipe.ReadPipe(readPipe)
 	if err != nil {
-		return err
+		log.Error(err)
 	}
 	_ = pipe.ClosePipe(readPipe)
 	cmd := string(cmdBytes)
@@ -28,13 +28,15 @@ func RunContainerInitProcess() error {
 	file := strings.Split(cmd, " ")[0]
 	path, err := exec.LookPath(file)
 	if err != nil {
-		return fmt.Errorf("not find %s in PATH:%s", file, err.Error())
+		log.Errorf("not find %s in PATH:%s", file, err.Error())
+		return
 	}
 	argv := []string{cmd}
 	if err := syscall.Exec(path, argv, os.Environ()); err != nil {
-		return err
+		log.Error(err)
+		return
 	}
-	return nil
+
 }
 
 func setUpMount() {

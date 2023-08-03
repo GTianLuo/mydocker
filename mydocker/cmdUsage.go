@@ -16,6 +16,9 @@ const (
 
 	psCommandShort = "List containers"
 	psCommandLong  = " List containers"
+
+	logsCommandShort = "Fetch the logs of a container"
+	logsCommandLong  = "Fetch the logs of a container"
 )
 
 const (
