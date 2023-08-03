@@ -22,6 +22,12 @@ const (
 
 	execCommandShort = "Execute a command in a running container"
 	execCommandLong  = "Execute a command in a running container"
+
+	stopCommandShort = "Stop one or more running containers"
+	stopCommandLong  = "Stop one or more running containers"
+
+	rmCommandShort = "Remove one or more containers"
+	rmCommandLong  = "Remove one or more containers"
 )
 
 const (

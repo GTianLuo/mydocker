@@ -20,6 +20,8 @@ func init() {
 		listCommand,
 		logCommand,
 		execCommand,
+		stopCommand,
+		rmCommand,
 	)
 	// 添加 -i 和 -t 参数
 	runCommand.Flags().BoolP("interactive", "i", false, interactiveUsage)
@@ -124,6 +126,34 @@ var execCommand = &cobra.Command{
 		containerName := args[0]
 		cmdS := strings.Join(args[1:], " ")
 		command.ExecContainer(containerName, cmdS)
+		return nil
+	},
+}
+
+var stopCommand = &cobra.Command{
+	Use:   "stop",
+	Short: stopCommandShort,
+	Long:  stopCommandLong,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return fmt.Errorf("Messing container name")
+		}
+		containerName := args[0]
+		command.StopContainer(containerName)
+		return nil
+	},
+}
+
+var rmCommand = &cobra.Command{
+	Use:   "rm",
+	Short: rmCommandShort,
+	Long:  rmCommandLong,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return fmt.Errorf("Messing container name")
+		}
+		containerName := args[0]
+		command.RmContainer(containerName)
 		return nil
 	},
 }

@@ -40,7 +40,6 @@ void __attribute__((constructor)) enter_namespace(void){
         }
         close(fd);
     }
-    system(mkdirCmd);
     // 在进入的Namespace中执行的命令
     int res = system(docker_cmd);
     exit(0);
