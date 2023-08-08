@@ -42,16 +42,18 @@ var runCommand = &cobra.Command{
 	Long:  runCommandLong,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		//判断参数是否包含command并获取
-		if len(args) < 1 {
+		if len(args) < 2 {
 			return fmt.Errorf("Missing container command")
 		}
+		// 获取容器名字
+		imageName := args[0]
+		command := strings.Join(args[1:], " ")
 		// 读取开关参数
 		isTty, _ := cmd.Flags().GetBool("tty")
 		isInteractive, _ := cmd.Flags().GetBool("interactive")
 
 		// 读取资源限制参数
 		memoryLimit, _ := cmd.Flags().GetString("memory")
-		command := strings.Join(args, " ")
 
 		// 获取数据卷映射参数
 		volume, _ := cmd.Flags().GetStringSlice("volume")
@@ -66,7 +68,7 @@ var runCommand = &cobra.Command{
 		if detach && isTty || detach && isInteractive {
 			return fmt.Errorf("ti and paramter can not both provided")
 		}
-		Run(isTty, isInteractive, detach, command, &subsystems.ResourceConfig{MemoryLimit: memoryLimit}, name, volumeParam)
+		Run(isTty, isInteractive, detach, command, &subsystems.ResourceConfig{MemoryLimit: memoryLimit}, name, volumeParam, imageName)
 		return nil
 	},
 }

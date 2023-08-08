@@ -12,12 +12,13 @@ import (
 )
 
 type ContainerInfo struct {
-	Pid        string `json:"pid"`        // 容器init进程在宿主机上的pid
-	Id         string `json:"id"`         // 容器的唯一id
-	Name       string `json:"name"`       // 容器名
-	Command    string `json:"command"`    // init进程运行的命令
-	CreateTime string `json:"createTime"` //容器的创建时间
-	Status     string `json:"status"`     // 容器状态
+	Pid        string   `json:"pid"`        // 容器init进程在宿主机上的pid
+	Id         string   `json:"id"`         // 容器的唯一id
+	Name       string   `json:"name"`       // 容器名
+	Command    string   `json:"command"`    // init进程运行的命令
+	CreateTime string   `json:"createTime"` //容器的创建时间
+	Status     string   `json:"status"`     // 容器状态
+	Volume     []string `json:"volume"`     // 容器的数据卷挂载信息
 }
 
 var (
@@ -29,7 +30,7 @@ var (
 	LogFileName         string = "container.log"
 )
 
-func RecordContainerInfo(cid string, pid string, cmd string, containerName string) (string, error) {
+func RecordContainerInfo(cid string, pid string, cmd string, containerName string, volume []string) (string, error) {
 	// 获取创建时间
 	createTime := time.Now().Format("2006-01-02 15:04:05")
 	containerInfo := &ContainerInfo{
@@ -39,6 +40,7 @@ func RecordContainerInfo(cid string, pid string, cmd string, containerName strin
 		Command:    cmd,
 		CreateTime: createTime,
 		Status:     Running,
+		Volume:     volume,
 	}
 	// 序列化信息
 	jsonBytes, err := json.Marshal(containerInfo)

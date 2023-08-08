@@ -13,7 +13,7 @@ import (
 )
 
 // Run 启动容器
-func Run(isTty bool, isInteractive bool, detach bool, command string, res *subsystems.ResourceConfig, containerName string, volume []string) {
+func Run(isTty bool, isInteractive bool, detach bool, command string, res *subsystems.ResourceConfig, containerName string, volume []string, imageName string) {
 
 	// 获取容器id
 	cid := common.GetRandomID()
@@ -22,7 +22,7 @@ func Run(isTty bool, isInteractive bool, detach bool, command string, res *subsy
 		containerName = cid
 	}
 	// 获取容器创建初始化的command
-	cmd, writePipe, err := container.NewParentProcess(isTty, isInteractive, detach, containerName, command, volume)
+	cmd, writePipe, err := container.NewParentProcess(isTty, isInteractive, detach, containerName, command, volume, imageName)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, err.Error())
 		return
@@ -34,13 +34,11 @@ func Run(isTty bool, isInteractive bool, detach bool, command string, res *subsy
 	}
 	defer func() {
 		if !detach {
-			rootUrl := "/home/gtl/docker"
-			mntUrl := "/home/gtl/docker/mnt"
-			container.DeleteWorkSpace(rootUrl, mntUrl, volume)
+			container.DeleteWorkSpace(imageName, containerName, volume)
 		}
 	}()
 
-	info, err := container.RecordContainerInfo(cid, strconv.Itoa(cmd.Process.Pid), command, containerName)
+	info, err := container.RecordContainerInfo(cid, strconv.Itoa(cmd.Process.Pid), command, containerName, volume)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, err.Error())
 		return
