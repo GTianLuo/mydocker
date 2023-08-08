@@ -22,6 +22,7 @@ func init() {
 		execCommand,
 		stopCommand,
 		rmCommand,
+		commitCommand,
 	)
 	// 添加 -i 和 -t 参数
 	runCommand.Flags().BoolP("interactive", "i", false, interactiveUsage)
@@ -117,7 +118,7 @@ var execCommand = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if os.Getenv(command.ENV_EXEC_PID) != "" {
 			// callback
-			log.Infof("pid callback pid: %s", os.Getpid())
+			log.Infof("pid callback pid: %d", os.Getpid())
 			return nil
 		}
 
@@ -156,6 +157,19 @@ var rmCommand = &cobra.Command{
 		}
 		containerName := args[0]
 		command.RmContainer(containerName)
+		return nil
+	},
+}
+
+var commitCommand = &cobra.Command{
+	Use:   "commit",
+	Short: commitShort,
+	Long:  commitLong,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 2 {
+			return fmt.Errorf("Messing container name or image name")
+		}
+		command.CommitContainer(args[0], args[1])
 		return nil
 	},
 }
