@@ -35,6 +35,8 @@ func init() {
 	runCommand.Flags().StringP("name", "n", "", nameUsage)
 	// -d 参数
 	runCommand.Flags().BoolP("detach", "d", false, detachUsage)
+	// -e 参数
+	runCommand.Flags().StringSliceP("env", "e", []string{}, envUsage)
 }
 
 var runCommand = &cobra.Command{
@@ -69,7 +71,10 @@ var runCommand = &cobra.Command{
 		if detach && isTty || detach && isInteractive {
 			return fmt.Errorf("ti and paramter can not both provided")
 		}
-		Run(isTty, isInteractive, detach, command, &subsystems.ResourceConfig{MemoryLimit: memoryLimit}, name, volumeParam, imageName)
+		// 读取环境变量
+		envs, _ := cmd.Flags().GetStringSlice("env")
+
+		Run(isTty, isInteractive, detach, command, &subsystems.ResourceConfig{MemoryLimit: memoryLimit}, name, volumeParam, imageName, envs)
 		return nil
 	},
 }

@@ -11,7 +11,7 @@ import (
 
 // NewParentProcess 获取创建新进程的命令
 // 该命令在执行时调用当前的可执行程序,这里通过参数设置调用init方法
-func NewParentProcess(isTty, isInteractive, detach bool, containerName string, command string, volume []string, imageName string) (*exec.Cmd, *os.File, error) {
+func NewParentProcess(isTty, isInteractive, detach bool, containerName string, command string, volume []string, imageName string, env []string) (*exec.Cmd, *os.File, error) {
 	args := []string{"init", command}
 	cmd := exec.Command("/proc/self/exe", args...)
 	if isTty && isInteractive {
@@ -28,6 +28,7 @@ func NewParentProcess(isTty, isInteractive, detach bool, containerName string, c
 	if err != nil {
 		return nil, nil, err
 	}
+	// 设置cmd启动进程的属性
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		// TODO user namespace
 		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWNET | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWIPC,
@@ -35,9 +36,12 @@ func NewParentProcess(isTty, isInteractive, detach bool, containerName string, c
 	if err := NewWorkSpace(volume, imageName, containerName); err != nil {
 		return nil, nil, err
 	}
+	// 设置起始目录
 	cmd.Dir = fmt.Sprintf(MntUrl, containerName)
-
+	// 设置进程额外打开的文件描述符
 	cmd.ExtraFiles = []*os.File{readPipe}
+	//设置进程的环境变量
+	cmd.Env = append(os.Environ(), env...)
 	return cmd, writePipe, nil
 }
 

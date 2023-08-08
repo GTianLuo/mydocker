@@ -40,4 +40,5 @@ const (
 	volumeUsage      = " Bind mount a volume"
 	nameUsage        = " Assign a name to the container"
 	detachUsage      = " Run container in background and print container ID"
+	envUsage         = " Set environment variables"
 )

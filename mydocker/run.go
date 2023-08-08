@@ -13,7 +13,7 @@ import (
 )
 
 // Run 启动容器
-func Run(isTty bool, isInteractive bool, detach bool, command string, res *subsystems.ResourceConfig, containerName string, volume []string, imageName string) {
+func Run(isTty bool, isInteractive bool, detach bool, command string, res *subsystems.ResourceConfig, containerName string, volume []string, imageName string, env []string) {
 
 	// 获取容器id
 	cid := common.GetRandomID()
@@ -22,7 +22,7 @@ func Run(isTty bool, isInteractive bool, detach bool, command string, res *subsy
 		containerName = cid
 	}
 	// 获取容器创建初始化的command
-	cmd, writePipe, err := container.NewParentProcess(isTty, isInteractive, detach, containerName, command, volume, imageName)
+	cmd, writePipe, err := container.NewParentProcess(isTty, isInteractive, detach, containerName, command, volume, imageName, env)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, err.Error())
 		return
