@@ -10,12 +10,12 @@ import (
 )
 
 var (
-	RootUrl     = "/home/gtl/docker"         // docker的root目录
-	MntUrl      = RootUrl + "/mnt/%s"        // 容器的挂载目录
-	WriteLayer  = RootUrl + "/writeLayer/%s" // 容器可写层目录
-	ImagesUrl   = RootUrl + "/images/%s"     // 存放镜像tar压缩文件的目录
-	ReadOnlyUrl = RootUrl + "/readOnly/%s"   // 只读成目录
-	WorkUrl     = RootUrl + "/work/%s"       // 用于overlay fs 中转目录
+	RootUrl     = "/var/lib/mydocker/overlay2"  // docker的root目录
+	MntUrl      = RootUrl + "/mnt/%s"           // 容器的挂载目录
+	WriteLayer  = RootUrl + "/writeLayer/%s"    // 容器可写层目录
+	ImagesUrl   = "/var/lib/mydocker/images/%s" // 存放镜像tar压缩文件的目录
+	ReadOnlyUrl = RootUrl + "/readOnly/%s"      // 只读成目录
+	WorkUrl     = RootUrl + "/work/%s"          // 用于overlay fs 中转目录
 )
 
 // NewWorkSpace 创建容器运行的文件系统

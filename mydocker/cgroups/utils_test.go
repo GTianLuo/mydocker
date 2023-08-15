@@ -27,3 +27,25 @@ func TestPipe(t *testing.T) {
 	}
 	fmt.Println(string(msgBytes))
 }
+
+func lengthOfLongestSubstring(s string) int {
+	m := make(map[uint8]uint8, 30)
+	max := 0
+	l := 0
+	for i := 0; i < len(s); i++ {
+		if m[s[i]] == 0 {
+			m[s[i]] = 1
+			if i-l+1 > max {
+				fmt.Printf("%d  %d\n", l, i)
+				max = i - l + 1
+			}
+			continue
+		}
+		for l < i && m[s[i]] != 0 {
+			delete(m, m[s[l]])
+			l++
+		}
+		i--
+	}
+	return max
+}

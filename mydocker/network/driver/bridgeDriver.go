@@ -6,6 +6,7 @@ import (
 	"my_docker/mydocker/common"
 	"my_docker/mydocker/network"
 	"net"
+	"os"
 	"strings"
 )
 
@@ -25,6 +26,14 @@ func (d *BridgeNetworkDriver) Create(subnet string, name string) (*network.NetWo
 	// 初始化网桥
 	err = d.initBridge(n)
 	return n, err
+}
+
+func (d *BridgeNetworkDriver) Delete(name string) error {
+	link, err := netlink.LinkByName(name)
+	if err != nil {
+		return fmt.Errorf("Get interface device %s error :%v", name, err)
+	}
+	return netlink.LinkDel(link)
 }
 
 func (d *BridgeNetworkDriver) initBridge(n *network.NetWork) error {
@@ -106,7 +115,7 @@ func setUpIptables(bridgeName string, subnet *net.IPNet) error {
 }
 
 func main() {
-	d := &BridgeNetworkDriver{}
-	_, err := d.Create("10.1.1.1/24", "br0")
+
+	err := os.MkdirAll("/home/gtl/test/hello.c", 0777)
 	fmt.Println(err)
 }
