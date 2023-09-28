@@ -66,15 +66,15 @@ func (ipam *IPAM) dump() error {
 	return nil
 }
 
-func (ipam *IPAM) Allocate(subnetStr string) (ip net.IP, err error) {
+func (ipam *IPAM) Allocate(subnetStr string) (ipStr string, err error) {
 	_, subnet, err := net.ParseCIDR(subnetStr)
 	if err != nil {
-		return nil, fmt.Errorf("ipam allocate error:%v", err)
+		return "", fmt.Errorf("ipam allocate error:%v", err)
 	}
 	ipam.Subnets = &map[string][]uint64{}
 	err = ipam.load()
 	if err != nil {
-		return nil, fmt.Errorf("ipam allocate error:%v", err)
+		return "", fmt.Errorf("ipam allocate error:%v", err)
 	}
 	// ones 是掩码占的位数，bits是总位数
 	ones, bits := subnet.Mask.Size()
@@ -86,7 +86,7 @@ func (ipam *IPAM) Allocate(subnetStr string) (ip net.IP, err error) {
 		(*ipam.Subnets)[subnet.String()] = getBitmap(counts)
 	}
 	bitmap := (*ipam.Subnets)[subnet.String()]
-	ip = subnet.IP
+	ip := subnet.IP
 	for i, m := range bitmap {
 		var c uint64 = 1
 		ii := 1
@@ -98,13 +98,13 @@ func (ipam *IPAM) Allocate(subnetStr string) (ip net.IP, err error) {
 				for i := 3; i >= 0; i-- {
 					[]byte(ip)[i] += uint8(n >> ((3 - i) * 8))
 				}
-				return ip, ipam.dump()
+				return ip.String(), ipam.dump()
 			}
 			ii++
 			c = c << 1
 		}
 	}
-	return nil, fmt.Errorf("ipam allocate error: IP has been used up")
+	return "", fmt.Errorf("ipam allocate error: IP has been used up")
 
 }
 

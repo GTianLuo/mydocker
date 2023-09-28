@@ -31,6 +31,9 @@ const (
 
 	commitShort = "Create a new image from a container's changes"
 	commitLong  = "Create a new image from a container's changes"
+
+	networkShort = "Manage networks"
+	networkLong  = "Manage networks"
 )
 
 const (

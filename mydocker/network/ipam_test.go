@@ -2,6 +2,8 @@ package network
 
 import (
 	"fmt"
+	"io/fs"
+	"path/filepath"
 	"testing"
 )
 
@@ -38,7 +40,7 @@ func TestAllocate(t *testing.T) {
 			fmt.Println(err)
 			return
 		} else {
-			fmt.Println(ip.String())
+			fmt.Println(ip)
 		}
 	}
 }
@@ -53,6 +55,24 @@ func TestIPAMRelease(t *testing.T) {
 		fmt.Println(err)
 	}
 
+}
+
+func a() func() {
+	fmt.Println("A")
+	return func() {
+		fmt.Println("B")
+	}
+}
+
+func TestDefer(t *testing.T) {
+	filepath.Walk("./", func(path string, info fs.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+		_, file := filepath.Split(path)
+		fmt.Println(file)
+		return nil
+	})
 }
 
 /*

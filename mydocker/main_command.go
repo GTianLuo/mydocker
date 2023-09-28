@@ -178,3 +178,9 @@ var commitCommand = &cobra.Command{
 		return nil
 	},
 }
+
+var networkCommand = &cobra.Command{
+	Use:   "network [COMMAND]",
+	Short: networkShort,
+	Long:  networkLong,
+}
